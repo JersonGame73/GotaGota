@@ -1,0 +1,100 @@
+sequenceDiagram
+    participant Client as Browser
+    participant AuthC as AuthContext
+    participant API as API Service
+    participant Back as Backend
+    participant Redux as Redux Store
+    participant DB as Database
+    participant Calc as CalculationService
+    
+    %% Authentication Flow
+    Client->>AuthC: initiate login(credentials)
+    AuthC->>API: POST /api/auth/login
+    API->>Back: Send credentials
+    Back->>DB: Validate credentials
+    DB-->>Back: Return user data
+    Back-->>API: Return JWT token & user data
+    API-->>AuthC: Return response
+    AuthC->>AuthC: storeToken(token)
+    AuthC->>Redux: dispatch(loginSuccess(userData))
+    Redux-->>Client: Update UI (redirect to dashboard)
+    
+    %% Loan Application Process
+    Client->>API: POST /api/loans (create loan)
+    API->>Back: Process loan application
+    Back->>Calc: Calculate loan terms
+    Calc-->>Back: Return calculation results
+    Back->>DB: Store loan data
+    DB-->>Back: Confirm storage
+    Back->>Calc: Generate payment schedule
+    Calc-->>Back: Return payment schedule
+    Back->>DB: Store payment schedule
+    DB-->>Back: Confirm storage
+    Back-->>API: Return loan details
+    API-->>Client: Display loan confirmation
+    Back->>Back: Create notifications
+    Back->>DB: Store notifications
+    
+    %% Payment Calendar Visualization
+    Client->>API: GET /api/payments/calendar?start=X&end=Y
+    API->>Back: Request calendar data
+    Back->>DB: Fetch payments in date range
+    DB-->>Back: Return payment data
+    Back->>Back: Apply color coding
+    Back-->>API: Return calendar events
+    API-->>Client: Render calendar with events
+    
+    Client->>API: GET /api/payments/:id (click on calendar event)
+    API->>Back: Get payment details
+    Back->>DB: Fetch payment data
+    DB-->>Back: Return payment details
+    Back-->>API: Return payment info
+    API-->>Client: Display payment details
+    
+    %% Client Loan Status View
+    Client->>API: GET /api/clients/:id/loans
+    API->>Back: Request client's loans
+    Back->>DB: Fetch client loan data
+    DB-->>Back: Return loan data
+    Back-->>API: Return loan data
+    API-->>Client: Display active loans
+    
+    Client->>API: GET /api/loans/:id
+    API->>Back: Request loan details
+    Back->>DB: Fetch loan details
+    DB-->>Back: Return loan details
+    Back-->>API: Return loan details
+    API-->>Client: Display loan details
+    
+    Client->>API: GET /api/loans/:id/amortization
+    API->>Back: Request amortization table
+    Back->>Calc: Calculate remaining payments
+    Calc-->>Back: Return calculation
+    Back-->>API: Return amortization data
+    API-->>Client: Display amortization table
+    
+    %% Payment Recording Process
+    Client->>API: POST /api/payments (record payment)
+    API->>Back: Process payment
+    Back->>DB: Verify loan exists
+    DB-->>Back: Return loan data
+    Back->>Calc: Calculate payment impact
+    Calc-->>Back: Return updated loan status
+    Back->>DB: Store payment
+    DB-->>Back: Confirm storage
+    Back->>DB: Update loan balance
+    DB-->>Back: Confirm update
+    Back-->>API: Return payment confirmation
+    API-->>Client: Display payment receipt
+    Back->>Back: Create payment notification
+    Back->>DB: Store notification
+    
+    %% Admin Reporting Flow
+    Client->>API: GET /api/reports/loans?start=X&end=Y
+    API->>Back: Request loan report data
+    Back->>DB: Fetch loan data in range
+    DB-->>Back: Return loan data
+    Back->>Calc: Generate loan metrics
+    Calc-->>Back: Return metrics
+    Back-->>API: Return report data
+    API-->>Client: Display loan reports

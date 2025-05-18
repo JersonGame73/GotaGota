@@ -1,0 +1,120 @@
+classDiagram
+    class User {
+        +string id
+        +string username
+        +string password_hash
+        +string email
+        +string full_name
+        +string role
+        +DateTime last_login
+        +boolean is_active
+        +authenticate() boolean
+        +updateProfile() User
+        +changePassword() boolean
+    }
+    
+    class Client {
+        +string id
+        +string document_number
+        +string full_name
+        +string address
+        +string phone_number
+        +string email
+        +string photo_url
+        +DateTime created_at
+        +User created_by
+        +registerClient() Client
+        +updateClientInfo() Client
+        +getClientLoans() Loan[]
+    }
+    
+    class Loan {
+        +string id
+        +Client client
+        +decimal amount
+        +decimal interest_rate
+        +string interest_type
+        +int term_in_days
+        +DateTime start_date
+        +DateTime end_date
+        +string status
+        +decimal total_to_pay
+        +User created_by
+        +DateTime created_at
+        +calculateTotalToPayAndFees() void
+        +calculateCurrentBalance() decimal
+        +getPaymentSchedule() Payment[]
+    }
+    
+    class Payment {
+        +string id
+        +Loan loan
+        +DateTime due_date
+        +decimal amount
+        +decimal principal_amount
+        +decimal interest_amount
+        +string status
+        +DateTime payment_date
+        +decimal amount_paid
+        +User registered_by
+        +registerPayment() Payment
+        +calculateLateFees() decimal
+        +getPaymentStatus() string
+    }
+    
+    class Transaction {
+        +string id
+        +Loan loan
+        +string type
+        +decimal amount
+        +DateTime date
+        +User registered_by
+        +string notes
+        +registerTransaction() Transaction
+    }
+    
+    class Notification {
+        +string id
+        +User user
+        +string type
+        +string message
+        +boolean is_read
+        +DateTime created_at
+        +DateTime read_at
+        +markAsRead() void
+        +send() boolean
+    }
+    
+    class Report {
+        +string id
+        +string name
+        +string type
+        +User generated_by
+        +DateTime generated_at
+        +string parameters
+        +string output_format
+        +string file_url
+        +generateReport() string
+        +downloadReport() File
+    }
+    
+    class AuditLog {
+        +string id
+        +User user
+        +string action
+        +string entity_type
+        +string entity_id
+        +DateTime timestamp
+        +string ip_address
+        +string details
+        +logAction() AuditLog
+    }
+    
+    User <|-- Client : has account
+    Client "1" -- "*" Loan : has
+    Loan "1" -- "*" Payment : contains
+    Loan "1" -- "*" Transaction : has
+    User "1" -- "*" Notification : receives
+    User "1" -- "*" AuditLog : generates
+    User "1" -- "*" Report : generates
+    Payment -- Transaction : generates

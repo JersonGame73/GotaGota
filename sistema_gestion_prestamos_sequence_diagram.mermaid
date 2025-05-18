@@ -1,0 +1,73 @@
+sequenceDiagram
+    participant Cliente as Cliente/Navegador
+    participant Auth as AuthService
+    participant API as API Gateway
+    participant US as UserService
+    participant CS as ClientService
+    participant LS as LoanService
+    participant PS as PaymentService
+    participant NS as NotificationService
+    participant DB as Database
+    
+    %% Flujo de autenticación
+    Cliente->>Auth: login(username, password)
+    Auth->>DB: validateCredentials(username, password)
+    DB-->>Auth: userRecord
+    Auth->>Auth: generateJWT(userRecord)
+    Auth-->>Cliente: JWT Token
+    
+    %% Flujo de registro de cliente (empleado)
+    Cliente->>API: registerClient(clientData)
+    API->>Auth: validateToken()
+    Auth-->>API: isAuthorized
+    API->>CS: createClient(clientData)
+    CS->>DB: saveClient(clientData)
+    DB-->>CS: clientRecord
+    CS->>CS: uploadClientPhoto()
+    CS-->>API: clientCreated
+    API-->>Cliente: clientResponse
+    
+    %% Flujo de creación de préstamo
+    Cliente->>API: createLoan(loanData)
+    API->>Auth: validateToken()
+    Auth-->>API: isAuthorized
+    API->>LS: createLoan(loanData)
+    LS->>LS: calculateLoanTerms()
+    LS->>DB: saveLoan(loanData)
+    DB-->>LS: loanRecord
+    LS->>PS: generatePaymentSchedule(loanRecord)
+    PS->>DB: savePaymentSchedule(payments)
+    DB-->>PS: paymentSchedule
+    PS-->>LS: paymentScheduleCreated
+    LS-->>API: loanCreated
+    API-->>Cliente: loanResponse
+    LS->>NS: notifyClient(loanCreated)
+    NS->>DB: saveNotification()
+    
+    %% Flujo de registro de pago
+    Cliente->>API: registerPayment(paymentData)
+    API->>Auth: validateToken()
+    Auth-->>API: isAuthorized
+    API->>PS: processPayment(paymentData)
+    PS->>DB: getPaymentDetails(paymentId)
+    DB-->>PS: paymentDetails
+    PS->>PS: validatePayment()
+    PS->>DB: updatePaymentStatus()
+    DB-->>PS: updatedPayment
+    PS->>LS: updateLoanBalance(loanId)
+    LS->>DB: updateLoan(loanId)
+    DB-->>LS: updatedLoan
+    PS-->>API: paymentRegistered
+    API-->>Cliente: paymentResponse
+    PS->>NS: notifyPaymentReceipt()
+    NS->>DB: saveNotification()
+    
+    %% Flujo de consulta de calendario de pagos (cliente)
+    Cliente->>API: getPaymentCalendar(clientId)
+    API->>Auth: validateToken()
+    Auth-->>API: isAuthorized
+    API->>PS: getClientPayments(clientId)
+    PS->>DB: fetchClientPayments(clientId)
+    DB-->>PS: clientPayments
+    PS-->>API: paymentCalendar
+    API-->>Cliente: calendarData

@@ -1,0 +1,121 @@
+classDiagram
+    User <|-- Admin
+    User <|-- Employee
+    User <|-- Client
+    Client "1" -- "*" Loan
+    Loan "1" -- "*" Payment
+    Loan -- LoanType
+    Notification -- User
+    Payment -- PaymentCalendar
+    
+    class User {
+        +int id
+        +string email
+        +string password
+        +string firstName
+        +string lastName
+        +string phone
+        +Date createdAt
+        +Date updatedAt
+        +boolean isActive
+        +string role
+        +login(email, password) AuthToken
+        +logout() boolean
+        +resetPassword(email) boolean
+        +updateProfile(userDetails) User
+    }
+    
+    class Admin {
+        +createUser(userDetails) User
+        +deactivateUser(userId) boolean
+        +generateReport(reportType) Report
+        +configureSettings(settings) boolean
+    }
+    
+    class Employee {
+        +registerClient(clientDetails) Client
+        +processLoanApplication(loanDetails) Loan
+        +recordPayment(paymentDetails) Payment
+        +viewClientHistory(clientId) ClientHistory
+    }
+    
+    class Client {
+        +int id
+        +string documentId
+        +string documentType
+        +string address
+        +decimal creditScore
+        +string employmentStatus
+        +decimal monthlyIncome
+        +viewLoanStatus() LoanStatus[]
+        +viewPaymentHistory() Payment[]
+        +simulateLoan(amount, term, interestRate) LoanSimulation
+    }
+    
+    class Loan {
+        +int id
+        +int clientId
+        +int loanTypeId
+        +decimal amount
+        +decimal interestRate
+        +int term
+        +Date startDate
+        +Date endDate
+        +string status
+        +decimal totalInterest
+        +decimal monthlyPayment
+        +decimal remainingBalance
+        +calculateAmortization() AmortizationTable
+        +calculateInterest(method) decimal
+        +applyPayment(amount) boolean
+        +calculatePenalty(days) decimal
+    }
+    
+    class Payment {
+        +int id
+        +int loanId
+        +decimal amount
+        +Date paymentDate
+        +Date dueDate
+        +string status
+        +string paymentMethod
+        +string reference
+        +decimal penaltyAmount
+        +confirmPayment() boolean
+        +cancelPayment() boolean
+        +generateReceipt() Receipt
+    }
+    
+    class LoanType {
+        +int id
+        +string name
+        +string description
+        +decimal minAmount
+        +decimal maxAmount
+        +decimal baseInterestRate
+        +int minTerm
+        +int maxTerm
+        +string interestCalculationMethod
+        +boolean requiresCollateral
+        +updateLoanType(details) boolean
+    }
+    
+    class PaymentCalendar {
+        +int id
+        +Date date
+        +getPaymentsForDate(date) Payment[]
+        +getPaymentsForPeriod(startDate, endDate) Payment[]
+        +getColorForPayment(payment) string
+    }
+    
+    class Notification {
+        +int id
+        +int userId
+        +string title
+        +string message
+        +Date createdAt
+        +boolean isRead
+        +string type
+        +markAsRead() boolean
+        +send() boolean
+    }
